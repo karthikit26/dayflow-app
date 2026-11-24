@@ -1,0 +1,1296 @@
+# WORKLEDGER
+## Complete Product Requirements & Functional Implementation Plan
+
+**Version:** 3.0  
+**Product:** Team Work Logging & Sprint Visibility System  
+**Frontend:** React + TypeScript  
+**Backend:** Node.js + Express + TypeScript  
+**Initial Data Store:** Google Sheets  
+**Authentication:** Google Workspace  
+**Default Timezone:** Asia/Kolkata (IST)  
+**Priority:** All requirements in this document are mandatory unless explicitly identified as a future enhancement.
+
+---
+
+# 1. PRODUCT VISION
+
+## 1.1 Objective
+
+Build a simple, secure, reliable and easy-to-use internal Team Work Logging & Sprint Visibility System.
+
+The application should allow team members to record their daily work, track team contributions, associate work with sprints and provide Admin with accurate weekly and sprint-level summaries.
+
+The application must NOT become another project-management or ticket-management platform.
+
+Azure DevOps remains the team's source of truth for tickets. WorkLedger is exclusively for recording and reviewing team activities.
+
+## 1.2 Core Objectives
+
+1. Provide a simple Google Workspace sign-in experience.
+2. Allow members to record multiple work entries per day.
+3. Allow Admin to configure the fields members must complete.
+4. Provide daily work submission and historical records.
+5. Provide team-wide visibility of work.
+6. Support lightweight sprint management.
+7. Support manual Azure DevOps ticket references.
+8. Generate weekly team updates with one-click copy.
+9. Provide accurate reports and summaries.
+10. Maintain strong security, data integrity and auditability.
+
+## 1.3 Product Principles
+
+- Simplicity over unnecessary features.
+- Accuracy over visual metrics.
+- Minimal screens and interactions.
+- Configurable rather than hardcoded.
+- Secure backend permissions.
+- One consistent source of truth.
+- No duplicate functionality from Azure DevOps.
+- No unnecessary notifications or approval workflows.
+
+# 2. FINALIZED PRODUCT DECISIONS
+
+All the following decisions are mandatory.
+
+| Area | Requirement |
+|---|---|
+| Application | Internal team application |
+| Landing page | No marketing or product landing page |
+| Authentication | Simple Google sign-in screen |
+| Authentication provider | Google Workspace |
+| Roles | ADMIN and MEMBER |
+| Default timezone | Asia/Kolkata |
+| Timezone configuration | Admin configurable |
+| EOD reminder emails | Not required |
+| Working-hour tracking | Not required |
+| Start/end time | Not required |
+| Duration calculation | Not required |
+| Expected daily hours | Not required |
+| Daily work entries | Multiple entries supported |
+| Work logging fields | Admin configurable |
+| Daily completion | Strict submission |
+| Admin approval | Not required |
+| Admin reopening | Allowed with audit logging |
+| Team visibility | Team-wide |
+| Sprint management | Lightweight |
+| Ticket management | Not required |
+| ADO integration | Manual ticket ID or URL |
+| Automatic carry-forward | Not required |
+| Weekly summary | One-click generate and copy |
+| Initial data store | Google Sheets |
+| Migration readiness | Must support future PostgreSQL migration |
+
+# 3. USER ROLES AND PERMISSIONS
+
+The application must support exactly two roles initially.
+
+## 3.1 ADMIN
+
+Admin has complete administrative access.
+
+Admin permissions:
+
+- View team-wide work entries.
+- View individual member work history.
+- View daily submission status.
+- Create and manage team members.
+- Activate and deactivate member accounts.
+- Assign Admin or Member roles.
+- Configure dynamic work logging fields.
+- Configure field types and validation rules.
+- Configure work categories and statuses.
+- Manage sprint information.
+- Associate and review sprint-related work.
+- View daily, weekly and monthly reports.
+- Generate and copy weekly team summaries.
+- Reopen submitted daily reports when necessary.
+- Configure company timezone and working days.
+- View audit logs.
+- Access system settings.
+- Preview the Member experience.
+
+Admin does not need to approve daily submissions.
+
+## 3.2 MEMBER
+
+Member permissions:
+
+- Sign in using an approved company Google account.
+- View their daily work.
+- Add multiple work entries.
+- Edit their own entries before daily submission.
+- View their own work history.
+- View team-wide work summaries.
+- Associate work with an available sprint.
+- Add optional Azure DevOps ticket references.
+- Complete their daily submission.
+- View their profile.
+
+Members cannot:
+
+- Configure application fields.
+- Modify system settings.
+- Change roles.
+- Access Admin-only operations.
+- Modify another member's work entries.
+- Reopen submitted reports.
+
+## 3.3 Permission Enforcement
+
+IMPORTANT:
+
+Permissions must be enforced on the backend for every protected API.
+
+Hiding buttons or navigation items in React is not sufficient.
+
+Changing a role value in the browser must never grant additional permissions.
+
+# 4. ADMIN WORKSPACE AND MEMBER PREVIEW
+
+Admin should have two distinct application views.
+
+These are workspace views, not separate accounts or permission levels.
+
+## 4.1 Admin Workspace
+
+This is the default workspace after an Admin signs in.
+
+It provides access to:
+
+1. Overview
+2. Team Work
+3. Sprint Overview
+4. Team Members
+5. Work Configuration
+6. Reports
+7. Settings
+
+## 4.2 Member Preview
+
+Admin can switch to a preview of the Member interface.
+
+Purpose:
+
+- Understand the actual Member experience.
+- Preview configured work logging fields.
+- Check the form layout.
+- Validate field labels, options and mandatory fields.
+- Verify the daily workflow.
+
+IMPORTANT:
+
+- Preview must not change the Admin's actual role.
+- Preview must not grant or remove permissions.
+- Admin must retain backend Admin authorization.
+- Preview must not create real member work entries.
+- Clearly indicate that the user is in Preview Mode.
+
+Members should not see the Admin workspace switcher.
+
+# 5. APPLICATION SCREENS AND NAVIGATION
+
+The application must use the smallest practical number of screens.
+
+Do not create unnecessary pages or complicated navigation.
+
+## 5.1 Authentication Screen
+
+Provide a simple sign-in screen.
+
+Required elements:
+
+- Application name and logo.
+- Sign in with Google button.
+- Clear authentication error messages.
+
+Authentication workflow:
+
+1. User opens the application.
+2. User clicks Sign in with Google.
+3. Google Workspace authentication is performed.
+4. Backend validates the Google identity.
+5. Backend checks account eligibility and role.
+6. User is redirected to the appropriate workspace.
+
+IMPORTANT:
+
+- No product landing page.
+- No marketing content.
+- No feature showcase.
+- No unnecessary registration form.
+- No unrestricted account creation.
+- Only approved company accounts can access the application.
+
+## 5.2 MEMBER NAVIGATION
+
+Keep the following navigation:
+
+1. My Work
+2. My History
+3. Team Overview
+4. Profile
+
+### Screen 1: My Work
+
+This is the Member's primary screen.
+
+Display:
+
+- Current work date.
+- Today's work entries.
+- Daily submission status.
+- Add Work button.
+- Complete Day button.
+
+The screen must make adding work the primary action.
+
+### Screen 2: My History
+
+Display previously recorded work.
+
+Required information:
+
+- Work date.
+- Work summary.
+- Configured field values.
+- Work status.
+- Optional ADO reference.
+- Submission status.
+
+Provide simple date filtering and keyword search.
+
+### Screen 3: Team Overview
+
+Display team-wide activity.
+
+Required information:
+
+- Member names.
+- Work entries recorded today.
+- Daily submission status.
+- Recent work summaries.
+- Sprint association where applicable.
+
+No working-hour or duration-based metrics.
+
+### Screen 4: Profile
+
+Display:
+
+- Name.
+- Email.
+- Role.
+- Account status.
+- Timezone information.
+
+Keep this screen minimal.
+
+## 5.3 ADMIN NAVIGATION
+
+Keep the following navigation:
+
+1. Overview
+2. Team Work
+3. Sprint Overview
+4. Team Members
+5. Work Configuration
+6. Reports
+7. Settings
+
+### Screen 1: Overview
+
+Display only meaningful team-level information:
+
+- Total active members.
+- Members who completed daily submissions.
+- Members with pending submissions.
+- Total work entries recorded.
+- Recent team activities.
+- Current sprint summary.
+
+Do not display working-hour metrics or unnecessary charts.
+
+### Screen 2: Team Work
+
+Admin must be able to:
+
+- View all members' work entries.
+- Filter by member.
+- Filter by date.
+- Filter by work category.
+- Filter by status.
+- Filter by sprint.
+- Search work descriptions.
+- View individual work history.
+- Reopen submitted daily reports when required.
+
+### Screen 3: Sprint Overview
+
+Display:
+
+- Current sprint.
+- Sprint objective.
+- Sprint period.
+- Work entries associated with the sprint.
+- Completed work.
+- Work in progress.
+- Blocked work indicators.
+- Team contributions.
+
+### Screen 4: Team Members
+
+Admin must be able to:
+
+- Add or invite members.
+- Activate accounts.
+- Deactivate accounts.
+- Assign roles.
+- View member information.
+- View individual work history.
+
+### Screen 5: Work Configuration
+
+Admin configures the information members must enter when logging work.
+
+This is a critical application feature.
+
+### Screen 6: Reports
+
+Provide daily, weekly, monthly and sprint-level summaries.
+
+### Screen 7: Settings
+
+Provide:
+
+- Company timezone.
+- Working days.
+- Approved email domains.
+- Application configuration.
+- Other essential system settings.
+
+# 6. DYNAMIC WORK LOGGING CONFIGURATION
+
+## 6.1 Objective
+
+Admin must be able to configure the work logging form without requiring any source-code changes or application redeployment.
+
+The Member's Add Work form must be generated dynamically using the latest active Admin configuration.
+
+## 6.2 Configurable Field Properties
+
+Every field must support:
+
+| Property | Description |
+|---|---|
+| Field name | Display label |
+| Field type | Input type |
+| Required | Mandatory or optional |
+| Placeholder | Input guidance |
+| Help text | Additional instructions |
+| Options | Dropdown or selection values |
+| Validation | Length, format or value rules |
+| Display order | Position in the form |
+| Active status | Enabled or disabled |
+| Default value | Optional initial value |
+
+## 6.3 Supported Field Types
+
+The initial release must support:
+
+1. Short Text
+2. Long Text
+3. Dropdown
+4. Multi-select
+5. Radio Button
+6. Checkbox
+7. Date
+8. URL
+9. Number
+
+## 6.4 Recommended Initial Fields
+
+These are initial defaults that Admin can modify.
+
+| Field | Type | Required |
+|---|---|---|
+| Work Summary | Long Text | Yes |
+| Work Category | Dropdown | Yes |
+| Description / Details | Long Text | Configurable |
+| Work Status | Dropdown | Yes |
+| Sprint | Dropdown | Optional |
+| ADO Ticket Reference | URL or Short Text | Optional |
+| Blocker / Dependency | Long Text | Optional |
+| Additional Notes | Long Text | Optional |
+
+## 6.5 Default Work Categories
+
+- Development
+- Bug Fix
+- Code Review
+- Testing
+- Research
+- Meeting
+- Deployment
+- Support
+- Documentation
+- Other
+
+Admin must be able to add, rename, reorder, disable and modify these options.
+
+## 6.6 Default Work Statuses
+
+- Completed
+- In Progress
+- Blocked
+
+Admin can configure the available statuses.
+
+IMPORTANT:
+
+The weekly summary generator must use the configured status values and their defined meanings. It must not guess whether work is completed based on the description.
+
+## 6.7 Dynamic Configuration Rules
+
+- Every field must have a stable unique ID.
+- Existing work entries must retain their original values.
+- Changing a field label must not destroy historical data.
+- Field types must not be changed incompatibly without a migration or compatibility rule.
+- Disabled fields must remain available for historical display.
+- Deleted fields should be archived instead of permanently removed.
+- Mandatory fields must be validated on the frontend and backend.
+- Invalid values must be rejected by the backend.
+- Configuration changes must be audited.
+- Members must not be able to modify field definitions.
+
+IMPORTANT:
+
+Implement configuration versioning.
+
+Every work entry should retain the configuration version used when it was created. Historical records must remain readable even after Admin changes the form.
+
+# 7. DAILY WORK LOGGING
+
+## 7.1 Work Entry Workflow
+
+1. Member signs in.
+2. Member opens My Work.
+3. Application displays the current work date.
+4. Member clicks Add Work.
+5. Application loads the active dynamic form configuration.
+6. Member enters the required details.
+7. Member optionally adds an ADO reference.
+8. Member saves the entry.
+9. Saved work appears immediately in My Work.
+10. Member can add more work entries.
+11. Member completes the daily submission.
+
+## 7.2 Work Entry Rules
+
+IMPORTANT:
+
+- Multiple entries per day must be supported.
+- No start time field.
+- No end time field.
+- No duration field.
+- No time-spent field.
+- No working-hour calculations.
+- No expected daily hours.
+- Backend generates timestamps.
+- Backend determines authenticated member ownership.
+- Work date must be validated using the configured timezone.
+- Members cannot assign entries to another user.
+- Every create, edit and correction must be auditable.
+- Save operations must not silently fail.
+
+## 7.3 Editing Rules
+
+Before daily submission:
+
+- Members can edit their own work entries.
+- Members can correct descriptions and configured field values.
+- Members can delete their own entries if deletion is permitted by system policy.
+- Changes must be recorded in the audit log.
+
+After daily submission:
+
+- Member editing is locked.
+- Admin can reopen the report.
+- Any correction must be traceable.
+- Original and updated values should be retained where appropriate.
+
+# 8. DAILY SUBMISSION
+
+Daily submission must be strict.
+
+The Member must complete their daily report.
+
+## 8.1 Complete Day Workflow
+
+Provide one clear action:
+
+**Complete Day**
+
+Before submission, the backend must validate:
+
+- At least one valid work entry exists, unless a no-work reason is supplied.
+- All mandatory fields are completed.
+- All field values match their configured types.
+- Work entries belong to the authenticated member.
+- The work date is valid.
+- The report has not already been submitted.
+
+If validation fails, show clear errors.
+
+## 8.2 After Submission
+
+- Mark the daily report as Submitted.
+- Lock normal Member editing.
+- Show a clear submission confirmation.
+- Preserve all submitted entries.
+- Allow Admin to reopen when necessary.
+- Record the submitter and timestamp.
+
+IMPORTANT:
+
+Daily submission completion is different from completing every work item.
+
+A Member may submit a daily report containing both Completed and In Progress work.
+
+No Admin approval is required.
+
+## 8.3 No-Work Days
+
+Allow a Member to submit a no-work reason when no work entries exist.
+
+The reason must be validated according to the configured minimum requirements.
+
+Do not generate fabricated work entries.
+
+# 9. AZURE DEVOPS REFERENCES
+
+Azure DevOps remains the source of truth for tickets.
+
+WorkLedger must not duplicate its ticket-management functionality.
+
+## 9.1 Supported Functionality
+
+Members may optionally enter:
+
+- ADO ticket ID.
+- ADO ticket URL.
+
+The application must:
+
+- Store the reference.
+- Validate URL format.
+- Display it as a clickable link.
+- Preserve the reference in history and reports.
+
+## 9.2 Explicitly Excluded
+
+Do not implement:
+
+- Ticket creation.
+- Ticket editing.
+- Ticket assignment.
+- Ticket status management.
+- Ticket boards.
+- Ticket comments.
+- ADO API integration.
+- Automatic ticket synchronization.
+
+# 10. LIGHTWEIGHT SPRINT MANAGEMENT
+
+Sprint management is required, but it must remain simple.
+
+Admin can:
+
+- Create a sprint.
+- Edit sprint details.
+- Define sprint name.
+- Define sprint objective.
+- Set start date.
+- Set end date.
+- Set sprint status.
+- Archive completed sprints.
+
+Members can associate their work entries with an available sprint.
+
+## 10.1 Sprint Reporting
+
+Provide:
+
+- Sprint work summaries.
+- Completed work.
+- Work in progress.
+- Blocked work.
+- Work categories.
+- Team contributions.
+- Related ADO references.
+
+Do not create tickets or duplicate Azure DevOps boards.
+
+# 11. ONE-CLICK WEEKLY TEAM UPDATE GENERATOR
+
+This is a mandatory feature.
+
+## 11.1 Objective
+
+Admin must be able to generate and copy a professional weekly team update with one button.
+
+This feature should eliminate the manual process of collecting individual work updates and preparing a consolidated weekly report.
+
+## 11.2 Admin Interface
+
+Add a prominent button:
+
+**Copy Weekly Summary**
+
+Recommended locations:
+
+- Admin Overview.
+- Reports.
+
+Admin must be able to select the reporting week.
+
+The selected dates are used internally to retrieve records. They must not appear in the generated message.
+
+## 11.3 Generation Workflow
+
+1. Admin opens the weekly summary.
+2. Admin selects the required reporting week.
+3. Admin clicks Copy Weekly Summary.
+4. Backend retrieves the team's eligible work entries.
+5. Application identifies Completed and In Progress work.
+6. Related and duplicate descriptions are consolidated where appropriate.
+7. Application generates a professional summary.
+8. The complete formatted text is copied to the clipboard.
+9. Application displays "Weekly summary copied successfully."
+
+The process must be simple and require only one button click after selecting the week.
+
+## 11.4 Required Output Format
+
+The generated message must contain exactly these two sections:
+
+**Work Completed**
+
+- List the team's completed work.
+- Use concise and professional sentences.
+- Consolidate related achievements where appropriate.
+- Preserve the meaning of the original descriptions.
+
+**Work In Progress**
+
+- List ongoing work.
+- Use clear and professional descriptions.
+- Do not present unfinished work as completed.
+
+Example:
+
+Weekly Team Update
+
+Work Completed
+
+- Resolved the issue where clicking 'Edit Selection' caused the header to disappear.
+- Resolved the issue where deposits with a zero balance were incorrectly displayed as incomplete.
+- Completed the Checkly changes.
+- Resolved the issue preventing split bill transactions from completing on the POS.
+
+Work In Progress
+
+- Continued working on HOP-related activities.
+- Working on further improvements to the EPoS application.
+
+This is a formatting example only. Actual generated statements must come from saved work entries.
+
+## 11.5 Strict Content Restrictions
+
+The generated summary must NOT include:
+
+- Employee names.
+- Individual work attribution.
+- Individual work dates.
+- Weekly date ranges.
+- Sprint start or end dates.
+- Working hours.
+- Duration.
+- Individual performance assessments.
+- Daily submission statuses.
+- Unrelated administrative updates.
+- Invented achievements.
+- Assumptions not supported by work entries.
+
+Only Completed and In Progress work should appear.
+
+Blocked work must not create a third section. It can be included under Work In Progress only when the recorded work is genuinely ongoing and its status rules support that classification. Otherwise, exclude it from the two-section summary.
+
+## 11.6 Accuracy Rules
+
+- Use actual saved work entries.
+- Exclude invalid entries.
+- Exclude unsubmitted work entries from confirmed weekly achievements.
+- Use the selected reporting period.
+- Do not invent missing information.
+- Avoid duplicate descriptions.
+- Preserve technical terminology.
+- Do not exaggerate achievements.
+- Do not convert ongoing work into completed work.
+- Do not change the original work entry during generation.
+- Generate the summary using backend-validated data.
+- Ensure consistent output from the same underlying records.
+
+## 11.7 Empty and Error States
+
+If no eligible entries exist:
+
+Show a message explaining that there is no completed or in-progress work available for the selected week.
+
+If clipboard access fails:
+
+Display the generated text and provide a manual copy option.
+
+## 11.8 Preview
+
+A preview before copying is recommended.
+
+Admin may make minor wording corrections to the generated output.
+
+These corrections must not modify the original work logs.
+
+The initial release can use a simple preview and Copy button, without building a complex editor.
+
+# 12. CARRY-FORWARD AND HISTORICAL RECORDS
+
+Automatic carry-forward of work entries is not required.
+
+WorkLedger must preserve the distinction between historical work and new work.
+
+Rules:
+
+- A work entry belongs to its original work date.
+- Do not automatically duplicate unfinished work into another day.
+- Members record new work as new entries.
+- A new entry may optionally reference an earlier entry.
+- Completed work must not be automatically copied.
+- Historical reporting must never double-count duplicated work.
+
+If follow-up tracking is needed in the future, implement it separately from historical work logs.
+
+# 13. TIMEZONE AND DATE MANAGEMENT
+
+Default timezone:
+
+**Asia/Kolkata (IST)**
+
+Admin must be able to configure the company timezone.
+
+IMPORTANT:
+
+- Store timestamps in UTC.
+- Display dates and times using the configured company timezone.
+- Determine work dates using the configured timezone.
+- Use the configured timezone for daily submission boundaries.
+- Avoid relying exclusively on the browser's local timezone.
+- Handle daylight-saving changes for other configured timezones.
+- Preserve historical work dates.
+- Prevent date changes from creating duplicate or incorrectly assigned records.
+
+Timezone configuration must be managed centrally.
+
+# 14. DATA STORAGE – GOOGLE SHEETS
+
+Google Sheets will be the initial datastore.
+
+## 14.1 Required Worksheets
+
+1. Users
+2. WorkEntries
+3. DailySubmissions
+4. Sprints
+5. WorkFieldDefinitions
+6. WorkFieldOptions
+7. WorkFieldConfigurationVersions
+8. AuditLogs
+9. SystemSettings
+
+## 14.2 Data Integrity
+
+Every record must include:
+
+- Unique record ID.
+- Relevant owner or creator ID.
+- Creation timestamp.
+- Update timestamp where applicable.
+- Required relationships.
+- Status information.
+
+IMPORTANT:
+
+- Never rely on spreadsheet row numbers as record identifiers.
+- Prevent duplicate submissions.
+- Protect against simultaneous writes.
+- Validate all data before persistence.
+- Use consistent IDs and relationships.
+- Handle failed and retried requests safely.
+- Preserve historical records.
+- Keep Google Sheets private.
+- Access Google Sheets only through the backend service account.
+- Never expose service account credentials in frontend code.
+
+## 14.3 Repository Abstraction
+
+Implement a repository/service architecture.
+
+Business logic must not directly depend on Google Sheets.
+
+Recommended flow:
+
+Presentation → API → Business Logic → Repository → Google Sheets
+
+This will allow a future migration to PostgreSQL without rewriting the complete application.
+
+## 14.4 Concurrency and Reliability
+
+Google Sheets does not provide the same transaction guarantees as a relational database.
+
+Therefore:
+
+- Serialize conflicting writes.
+- Use idempotency for retryable operations.
+- Prevent duplicate submissions.
+- Handle partial failures.
+- Use controlled write operations.
+- Avoid unsafe multi-instance writes without distributed coordination.
+- Maintain backups.
+- Provide recovery procedures.
+
+# 15. AUTHENTICATION AND SECURITY
+
+Security is mandatory for the application.
+
+## 15.1 Authentication
+
+- Use Google Workspace authentication.
+- Verify identity tokens on the backend.
+- Validate email verification.
+- Restrict access to approved company domains.
+- Prevent arbitrary registration.
+- Maintain secure sessions.
+- Support logout and session expiration.
+- Deactivated accounts must lose access.
+
+IMPORTANT:
+
+Approved Company Email Domains must not be left blank in production if blank means any email domain can access the application.
+
+Do not permit personal Gmail accounts unless explicitly approved.
+
+## 15.2 Authorization
+
+- Enforce role-based access on every protected endpoint.
+- Members can modify only their own work entries.
+- Admin-only APIs must reject Member requests.
+- Members cannot alter role or ownership fields.
+- Admin reopening must be restricted to authorized users.
+- Validate ownership and permissions server-side.
+
+## 15.3 Additional Security
+
+- Input validation and sanitization.
+- Secure cookies.
+- CSRF protection where applicable.
+- Rate limiting.
+- Secure secret management.
+- No exposed API credentials.
+- Protection against replayed requests.
+- Proper error handling.
+- No sensitive information in application logs.
+
+# 16. AUDIT LOGGING
+
+Audit logging is mandatory.
+
+Record important application operations.
+
+Each audit record should contain:
+
+- Actor ID.
+- Actor role.
+- Action.
+- Entity type.
+- Entity ID.
+- Previous value, where applicable.
+- New value, where applicable.
+- Timestamp.
+
+Audit the following:
+
+- Work entry creation.
+- Work entry modification.
+- Work entry deletion.
+- Daily submission.
+- Daily reopening.
+- Administrative corrections.
+- Member activation/deactivation.
+- Role changes.
+- Field configuration changes.
+- Sprint configuration changes.
+- Timezone changes.
+- Other important system settings.
+
+Audit logs must be append-only and accessible only to authorized Admin users.
+
+# 17. REPORTS AND ANALYTICS
+
+Reporting must be based on actual saved records.
+
+## 17.1 Required Reports
+
+- Daily work summary.
+- Weekly work summary.
+- Monthly work summary.
+- Member-wise work summary.
+- Sprint-wise work summary.
+- Work category summary.
+- Daily submission completion report.
+
+## 17.2 Reporting Rules
+
+- Use the configured company timezone.
+- Use consistent date boundaries.
+- Exclude invalid records.
+- Avoid duplicate counting.
+- Apply consistent status definitions.
+- Use a centralized calculation layer.
+- Ensure Admin dashboards, team summaries and reports agree.
+
+IMPORTANT:
+
+The same underlying data must produce the same totals throughout the application.
+
+No hardcoded dashboard metrics or independently implemented conflicting calculations.
+
+# 18. USER INTERFACE AND EXPERIENCE
+
+The application must prioritize simplicity and usability.
+
+## 18.1 Design Requirements
+
+- Minimal sidebar.
+- Clear page titles.
+- Consistent visual components.
+- Simple tables and filters.
+- Prominent Add Work button.
+- Clear Complete Day action.
+- Inline validation.
+- Clear loading states.
+- Clear success and error messages.
+- Responsive desktop, tablet and mobile layouts.
+- Accessible form labels.
+- Keyboard navigation.
+- Consistent empty states.
+
+## 18.2 Avoid Unnecessary UI
+
+Do not introduce:
+
+- Marketing landing pages.
+- Product feature showcases.
+- Ticket boards.
+- Working-hour dashboards.
+- Duration metrics.
+- Unnecessary charts.
+- Excessive dashboard cards.
+- Duplicate navigation.
+- Complicated workflows.
+- Multiple screens for simple actions.
+
+Every screen must have a clear purpose.
+
+# 19. TECHNICAL ARCHITECTURE
+
+## 19.1 Frontend
+
+- React.
+- TypeScript.
+- Reusable UI components.
+- Dynamic form renderer.
+- Role-based navigation.
+- Centralized API client.
+- Consistent validation.
+- Responsive design.
+
+## 19.2 Backend
+
+- Node.js.
+- Express.
+- TypeScript.
+- Google authentication verification.
+- Authorization middleware.
+- Centralized business logic.
+- Server-side validation.
+- Repository abstraction.
+- Audit logging.
+- Error handling.
+
+## 19.3 Data Layer
+
+- Google Sheets initially.
+- Service account access.
+- Unique record IDs.
+- Controlled write operations.
+- Concurrency protection.
+- Backup and recovery.
+- Future PostgreSQL migration support.
+
+## 19.4 Architecture Principle
+
+Do not place important business rules inside React components.
+
+Do not mix business logic with Google Sheets operations.
+
+Keep authentication, authorization, validation, business logic and persistence as separate responsibilities.
+
+# 20. IMPLEMENTATION PHASES
+
+All phases are mandatory for the complete product.
+
+## Phase 1 – Application Foundation
+
+- Simple Google sign-in.
+- Authentication and session handling.
+- Admin and Member roles.
+- Admin and Member navigation.
+- Admin Member Preview.
+- Secure backend.
+- Google Sheets integration.
+- Timezone configuration.
+
+## Phase 2 – Dynamic Work Configuration
+
+- Admin field management.
+- Field types.
+- Required/optional settings.
+- Field options.
+- Validation rules.
+- Display ordering.
+- Active/inactive fields.
+- Configuration versioning.
+- Member Preview validation.
+
+## Phase 3 – Work Logging
+
+- My Work screen.
+- Dynamic Add Work form.
+- Multiple work entries.
+- Work status.
+- Sprint association.
+- Manual ADO references.
+- Work entry editing.
+- Work history.
+- Backend validation.
+
+## Phase 4 – Daily Submission
+
+- Complete Day workflow.
+- Required-field validation.
+- No-work reason.
+- Submission locking.
+- Admin reopening.
+- Audit history.
+- Submission status.
+
+## Phase 5 – Admin and Team Visibility
+
+- Admin Overview.
+- Team Work.
+- Team Overview.
+- Team Members.
+- Lightweight sprint management.
+- Member history.
+- Filters and search.
+
+## Phase 6 – Weekly Summary and Reports
+
+- One-click Weekly Summary.
+- Reporting week selection.
+- Completed work grouping.
+- In-progress work grouping.
+- Duplicate handling.
+- Professional formatting.
+- Clipboard functionality.
+- Preview and correction.
+- Daily, weekly and monthly reports.
+- Sprint summaries.
+
+## Phase 7 – Quality, Security and Production Readiness
+
+- Authentication tests.
+- Permission tests.
+- Dynamic form tests.
+- Data integrity tests.
+- Submission tests.
+- Reporting consistency tests.
+- Weekly summary accuracy tests.
+- Concurrency tests.
+- Backup and recovery tests.
+- Mobile testing.
+- Accessibility testing.
+- Production deployment validation.
+
+# 21. MANDATORY ACCEPTANCE AND TESTING CRITERIA
+
+The application must not be considered complete just because all screens are available.
+
+Every requirement must be functionally tested.
+
+## 21.1 Authentication and Security
+
+- Approved Workspace accounts can sign in.
+- Unapproved accounts cannot sign in.
+- Personal accounts cannot bypass domain restrictions.
+- Members cannot access Admin APIs.
+- Members cannot edit another member's entries.
+- Deactivated users cannot access the system.
+- Frontend manipulation cannot bypass backend permissions.
+- Sessions expire securely.
+
+## 21.2 Dynamic Work Configuration
+
+- Admin can create every supported field type.
+- Required fields are enforced.
+- Dropdown and multi-select options work.
+- Field ordering is respected.
+- Disabled fields are handled correctly.
+- Configuration changes do not destroy old records.
+- Historical records display their original values.
+- Invalid API payloads are rejected.
+
+## 21.3 Work Logging
+
+- Multiple entries can be added on one day.
+- Work entries persist after refresh and re-login.
+- ADO references work correctly.
+- Editing updates the correct entry.
+- Ownership cannot be manipulated.
+- Work dates remain accurate across timezone boundaries.
+- No time or duration fields are introduced.
+
+## 21.4 Daily Submission
+
+- Valid reports can be submitted.
+- Invalid reports are rejected.
+- Empty reports require a valid no-work reason.
+- Duplicate submissions are prevented.
+- Submitted reports are locked.
+- Admin can reopen a report.
+- Reopening and corrections are audited.
+- Work entries are not lost during submission.
+
+## 21.5 Sprint Management
+
+- Admin can create and edit sprints.
+- Members can associate work with the correct sprint.
+- Sprint summaries use actual saved entries.
+- Archived sprints remain visible in historical records.
+- No ticket-management functionality is introduced.
+
+## 21.6 Weekly Summary
+
+- Admin can select the correct reporting week.
+- Only eligible work entries are included.
+- Completed work appears under Work Completed.
+- Ongoing work appears under Work In Progress.
+- Employee names are excluded.
+- Work dates and weekly date ranges are excluded.
+- No third category is generated.
+- Duplicate descriptions are handled.
+- Technical terminology is preserved.
+- No invented achievements appear.
+- The generated output matches actual work logs.
+- Copy action works correctly.
+- Empty and error states are handled.
+
+## 21.7 Reporting Accuracy
+
+- Member totals match the underlying records.
+- Team totals match the sum of eligible member records.
+- Daily reports use the correct timezone.
+- Weekly and monthly filters are accurate.
+- Sprint summaries match associated work entries.
+- Dashboard and report calculations agree.
+- No stale or hardcoded values are displayed.
+
+## 21.8 Reliability
+
+- Simultaneous requests do not overwrite data.
+- Retried requests do not create duplicates.
+- Failed saves are clearly reported.
+- Partial failures are handled safely.
+- Backup and recovery procedures work.
+- Audit records are preserved.
+- Historical data remains available.
+
+# 22. EXPLICITLY EXCLUDED FEATURES
+
+The following features must not be implemented in this product:
+
+1. Marketing or product landing page.
+2. EOD reminder emails.
+3. Working-hour tracking.
+4. Start and end time selection.
+5. Duration or time-spent calculations.
+6. Expected daily working hours.
+7. Ticket creation.
+8. Ticket editing and management.
+9. Ticket assignment.
+10. Ticket boards.
+11. Azure DevOps API integration.
+12. Automatic ticket synchronization.
+13. Daily Admin approval.
+14. Automatic carry-forward of historical work entries.
+15. Duplicate task management.
+16. Unnecessary dashboards and charts.
+17. Features that duplicate existing Azure DevOps functionality.
+
+# 23. FINAL PRODUCT SUCCESS CRITERIA
+
+WorkLedger is successful when it reliably answers these questions:
+
+1. What work has the team completed?
+2. What work is currently in progress?
+3. What work has been recorded by each team member?
+4. What work has been completed during the current sprint?
+5. Has each member completed their daily work submission?
+6. Can Admin generate a professional weekly team update with one click?
+7. Can Admin configure what information members need to record without changing application code?
+
+The application must provide accurate, consistent answers using actual saved data.
+
+---
+
+# FINAL IMPLEMENTATION INSTRUCTION
+
+Treat this document as the single source of truth for WorkLedger development.
+
+Every requirement marked in this specification is important and mandatory.
+
+Do not silently remove requirements, replace them with simplified mock implementations or introduce excluded features.
+
+Before implementation:
+
+1. Review the existing application and its architecture.
+2. Map existing functionality against this specification.
+3. Identify missing, incomplete and incorrectly implemented features.
+4. Preserve existing working functionality where it meets the requirements.
+5. Correct existing data inconsistencies and security gaps.
+6. Implement missing functionality.
+7. Test each workflow end to end.
+8. Verify the application against every acceptance criterion.
+
+Do not consider a feature complete merely because its UI exists.
+
+A feature is complete only when its frontend, backend, persistence, authorization, validation, error handling and relevant tests work correctly.
+
+**Final priority: A simple, secure, accurate and dependable application that makes daily work logging and weekly team reporting effortless.**

@@ -1,0 +1,1097 @@
+# Team Work & Sprint Management System
+## Complete Functional Workflow & Product Specification
+
+**Version:** 1.0  
+**Application:** Web-based Team Work & Sprint Management System  
+**Frontend:** React + TypeScript  
+**Backend:** Node.js + Express  
+**Initial Data Store:** Google Sheets  
+**Authentication:** Google Workspace Sign-In  
+**User Roles:** Admin and Member
+
+---
+
+# 1. Product Overview
+
+The Team Work & Sprint Management System is a centralized platform for managing daily employee activities, working hours, individual assignments, sprint progress and team productivity.
+
+The application should provide a simple, transparent and reliable workflow where every team member can record their daily work, track time spent, update progress and submit their daily report.
+
+Administrators should have complete visibility into team activities, working hours, sprint execution, pending submissions and productivity insights.
+
+The system should minimize manual follow-ups through automated validations, reminders and carry-forward workflows.
+
+## 1.1 Primary Objectives
+
+- Track daily work activities for every team member.
+- Allow multiple work entries per person per day.
+- Track actual working hours against configurable expected hours.
+- Maintain daily work progress and completion status.
+- Manage weekly sprints, tickets and assignments.
+- Automatically carry forward incomplete work.
+- Enforce mandatory daily submissions.
+- Send automated EOD reminders.
+- Provide team-wide working-hour visibility.
+- Maintain a complete audit history.
+- Provide meaningful team and sprint performance insights.
+
+## 1.2 Core Decisions
+
+| Configuration | Decision |
+|---|---|
+| Expected daily working hours | Customizable |
+| EOD reminder | 20:00 |
+| Daily submission | Strict / Mandatory |
+| Admin approval | Not required |
+| Incomplete work | Automatic carry-forward |
+| Working hours visibility | Entire team |
+| Authentication | Google Workspace |
+| User roles | Admin and Member |
+| Initial database | Google Sheets |
+| Application architecture | React + API backend |
+
+All time-based operations must use a configurable company timezone.
+
+---
+
+# 2. User Roles & Access Management
+
+The system supports two roles.
+
+## 2.1 Admin
+
+Administrators have complete access to the system.
+
+**Responsibilities:**
+
+- Manage team members.
+- Assign and modify user roles.
+- Configure working hours and working days.
+- Create and manage sprints.
+- Create, assign and manage tickets.
+- View all team members' daily activities.
+- Monitor working hours and productivity.
+- View daily submission statuses.
+- Monitor blockers and delayed work.
+- Configure holidays and leave.
+- View reminder delivery statuses.
+- Access audit logs.
+- Generate team and sprint reports.
+- Correct or reopen submitted daily reports through an audited process.
+
+## 2.2 Member
+
+Members can manage their own daily work and view team-level information.
+
+**Responsibilities:**
+
+- Sign in using their office Google account.
+- View their daily dashboard.
+- Add multiple work entries per day.
+- Update their work progress.
+- Record start and end times.
+- Add comments and blockers.
+- View their work history.
+- View their assigned tickets and sprint.
+- Submit their daily report.
+- View team working-hour summaries.
+- View team sprint progress.
+
+Members cannot:
+
+- Modify another member's work.
+- Change their own role.
+- Modify system settings.
+- Change expected working hours.
+- Modify sprint configurations.
+- Edit audit logs.
+- Reopen a submitted day without an authorized correction process.
+
+## 2.3 Permission Matrix
+
+| Feature | Admin | Member |
+|---|:---:|:---:|
+| Sign in | ✓ | ✓ |
+| View personal dashboard | ✓ | ✓ |
+| Add personal work | ✓ | ✓ |
+| Edit own work before submission | ✓ | ✓ |
+| View all team work | ✓ | Limited to team-visible views |
+| View team working hours | ✓ | ✓ |
+| Manage members | ✓ | — |
+| Change user roles | ✓ | — |
+| Configure expected hours | ✓ | — |
+| Create sprints | ✓ | — |
+| Manage tickets | ✓ | Assigned-ticket updates |
+| View all submissions | ✓ | Own submission |
+| Reopen submitted reports | ✓ | — |
+| Manage holidays and leave | ✓ | View own leave status |
+| View audit logs | ✓ | — |
+| View team reports | ✓ | Relevant team dashboards |
+
+---
+
+# 3. Authentication & First-Time Access
+
+## 3.1 Google Workspace Authentication
+
+Members must sign in using their official company Google account.
+
+**Workflow:**
+
+1. User opens the application.
+2. User selects "Continue with Google".
+3. Google authenticates the user.
+4. Backend verifies the Google ID token.
+5. Backend checks the email verification status.
+6. Backend validates the approved company email domain.
+7. Backend checks whether the account is active.
+8. System retrieves the member's role and profile.
+9. User is redirected to the appropriate dashboard.
+
+## 3.2 First-Time User Registration
+
+When a new approved company account signs in:
+
+- The system checks whether the user already exists.
+- If the user is new, an account can be created automatically with the Member role.
+- Administrators can subsequently change the role.
+- Expected working hours and working days are assigned from default settings.
+- Historical activities remain available even if the member is later deactivated.
+
+**Important:** The browser must never be trusted to determine a user's role. All permissions must be verified by the backend.
+
+---
+
+# 4. Application Navigation
+
+## Member Navigation
+
+1. Dashboard
+2. My Work
+3. Daily Submission
+4. My History
+5. Sprint & Tickets
+6. Team Overview
+7. My Profile
+
+## Admin Navigation
+
+1. Dashboard
+2. Team Management
+3. Work Management
+4. Sprint Management
+5. Ticket Management
+6. Daily Submissions
+7. Working Hours
+8. Blockers & Delays
+9. Reports & Analytics
+10. Email & Reminder Logs
+11. Audit Logs
+12. System Settings
+
+---
+
+# 5. Member Dashboard
+
+The dashboard should provide a quick overview of the member's daily activities.
+
+## 5.1 Dashboard Information
+
+Display:
+
+- Current date.
+- Member name and role.
+- Expected daily working hours.
+- Total logged working hours.
+- Remaining hours or excess hours.
+- Number of work entries.
+- Completed work count.
+- In-progress work count.
+- Blocked work count.
+- Daily submission status.
+- Assigned sprint and tickets.
+
+## 5.2 Daily Progress Overview
+
+Example:
+
+| Metric | Value |
+|---|---:|
+| Expected hours | 8 hours |
+| Logged hours | 6 hours |
+| Remaining hours | 2 hours |
+| Work entries | 4 |
+| Completed entries | 2 |
+| In-progress entries | 1 |
+| Blocked entries | 1 |
+
+The system must clearly distinguish between logged hours and task completion percentage.
+
+---
+
+# 6. My Work – Daily Work Management
+
+This is the primary feature of the application.
+
+A member can add multiple work entries for the same day.
+
+Each entry represents a separate activity or task.
+
+## 6.1 Add Work Workflow
+
+1. Member opens the My Work section.
+2. Selects "Add Work".
+3. Enters work details.
+4. Selects the category.
+5. Records start and end times.
+6. Updates the progress percentage.
+7. Selects the work status.
+8. Adds comments or additional notes.
+9. Saves the entry.
+
+## 6.2 Work Entry Fields
+
+| Field | Requirement |
+|---|---|
+| Work ID | Automatically generated |
+| Work Date | Required |
+| Work Title | Required |
+| Description | Recommended |
+| Category | Required |
+| Ticket ID | Optional |
+| Sprint ID | Optional |
+| Start Time | Required |
+| End Time | Required |
+| Duration | Automatically calculated |
+| Progress | 0–100% |
+| Status | Required |
+| Comments | Optional |
+| Blocker Details | Required when blocked |
+| Next Action | Required when blocked |
+| Created By | Automatically populated |
+| Created At | Automatically populated |
+| Updated At | Automatically populated |
+
+## 6.3 Work Categories
+
+- Development
+- Bug Fix
+- Code Review
+- Testing / QA
+- Meeting
+- Technical Discussion
+- Support
+- Research
+- Documentation
+- Deployment
+- Other
+
+Administrators should be able to manage the category list.
+
+## 6.4 Work Statuses
+
+| Status | Meaning |
+|---|---|
+| Not Started | Work has not started |
+| In Progress | Work is ongoing |
+| Blocked | Work cannot proceed |
+| Completed | Work is finished |
+| Carried Forward | Incomplete work moved to another working day |
+| Deferred | Work intentionally postponed |
+
+## 6.5 Progress Tracking
+
+Every work entry must have a progress value between 0% and 100%.
+
+Rules:
+
+- New work defaults to 0%.
+- Progress must be updated by the member.
+- Completed status requires 100%.
+- 100% progress automatically changes the status to Completed.
+- A Completed task cannot be marked as In Progress without an explicit audited reopening.
+- Blocked work must contain blocker details and a next action.
+
+**Completion principle:** The system must encourage members to complete their assigned work to 100%. However, it must never artificially mark unfinished work as completed just to satisfy daily submission. Incomplete work remains visible and is automatically carried forward.
+
+---
+
+# 7. Working Hours & Time Tracking
+
+Working hours must be calculated from individual work entries.
+
+## 7.1 Time Calculation
+
+Duration = End Time − Start Time.
+
+Example:
+
+| Work | Start | End | Duration |
+|---|---|---|---:|
+| Development | 09:00 | 11:00 | 2 hours |
+| Bug Fix | 11:15 | 12:45 | 1.5 hours |
+| Meeting | 13:30 | 14:30 | 1 hour |
+| Code Review | 14:45 | 17:15 | 2.5 hours |
+| **Total** | | | **7 hours** |
+
+The system should automatically calculate:
+
+- Daily logged hours.
+- Expected hours.
+- Remaining hours.
+- Excess hours.
+- Weekly logged hours.
+- Sprint-period logged hours.
+
+## 7.2 Expected Working Hours
+
+Expected hours must be configurable.
+
+Administrators can configure:
+
+- Default daily working hours.
+- Individual member working hours.
+- Working days.
+- Effective dates for schedule changes.
+- Date-specific expected-hour overrides.
+
+For example:
+
+| Member | Expected Hours |
+|---|---:|
+| Member A | 8 hours |
+| Member B | 7.5 hours |
+| Member C | 6 hours |
+
+## 7.3 Working Hour Visibility
+
+All team members can view the team's logged working hours.
+
+Members can see:
+
+- Their own detailed work entries.
+- Their own total hours.
+- Team member names and daily hour totals.
+- Team-level weekly hour summaries.
+
+Detailed personal descriptions and private notes should not automatically become visible to the entire team. Admins have full authorized access.
+
+---
+
+# 8. Daily Submission – Strict Workflow
+
+Daily submission is mandatory on every scheduled working day.
+
+There is no Admin approval workflow.
+
+## 8.1 Submission Process
+
+1. Member records their daily activities.
+2. System calculates total working hours.
+3. System checks all work entries.
+4. System validates required information.
+5. Member reviews the daily summary.
+6. Member selects "Submit Daily Report".
+7. Backend validates the report again.
+8. Submission is saved with a timestamp.
+9. The day is marked as Submitted.
+10. Member receives a confirmation message.
+
+## 8.2 Submission Validation
+
+Before allowing submission, validate:
+
+- At least one work entry exists, or a valid no-work reason is provided.
+- Every entry has a valid title and category.
+- All time ranges are valid.
+- No time entries overlap.
+- Every entry has a valid progress value.
+- Completed entries have 100% progress.
+- Blocked entries include blocker details and next action.
+- Required comments and descriptions are present according to configured rules.
+- The daily total is calculated correctly.
+- Any working-hour shortfall or excess has an explanation where required.
+
+If no work was performed, the member must provide a meaningful reason.
+
+## 8.3 Submission Lock
+
+After successful submission:
+
+- Normal editing is disabled.
+- The submitted report becomes read-only.
+- The member can view the submitted report.
+- Any correction requires an Admin-authorized reopen or correction action.
+- The system records the original values, modified values, actor and timestamp.
+
+Submission status and task completion status must remain separate.
+
+---
+
+# 9. Automatic Carry-Forward
+
+Incomplete work must automatically move to the next applicable working day.
+
+## 9.1 Carry-Forward Conditions
+
+A work entry is eligible when:
+
+- Its progress is below 100%.
+- Its status is not Completed.
+- It is not intentionally Deferred or Cancelled.
+- It has not already been carried forward to the target day.
+
+## 9.2 Carry-Forward Workflow
+
+1. Scheduled backend job checks incomplete work.
+2. System identifies the next working day.
+3. Weekends and configured holidays are skipped.
+4. A new daily work entry is created.
+5. Original work ID is retained as the source reference.
+6. Existing progress is preserved.
+7. Previous comments and history remain accessible.
+8. New-day time tracking starts empty.
+9. The member sees the carried-forward item on their dashboard.
+
+## 9.3 Example
+
+| Day | Work | Progress |
+|---|---|---:|
+| Monday | API Integration | 40% |
+| Tuesday | API Integration | 65% |
+| Wednesday | API Integration | 100% |
+
+The same logical work continues across days without losing its history.
+
+The system must not add the previous day's hours to the new day's hours.
+
+## 9.4 Carry-Forward Controls
+
+- Carry-forward must be idempotent.
+- Duplicate carry-forward records must be prevented.
+- Completed work must never be carried forward.
+- Deferred work must follow its explicit rescheduling date.
+- Repeated carry-forward should be highlighted in reports.
+- Admins must be able to inspect the carry-forward history.
+
+---
+
+# 10. Sprint Management
+
+Administrators manage sprint planning and execution.
+
+The system should support weekly or configurable sprint durations.
+
+## 10.1 Create Sprint
+
+Required fields:
+
+- Sprint ID.
+- Sprint Name.
+- Start Date.
+- End Date.
+- Sprint Goal.
+- Sprint Status.
+
+Sprint statuses:
+
+- Planned
+- Active
+- Completed
+- Cancelled
+
+## 10.2 Sprint Workflow
+
+1. Admin creates a sprint.
+2. Admin defines the sprint goal.
+3. Admin creates tickets.
+4. Admin assigns tickets to members.
+5. Members view their assigned tickets.
+6. Members record daily work against tickets.
+7. Ticket progress is updated.
+8. System calculates sprint progress.
+9. Admin reviews blockers and unfinished work.
+10. Sprint is closed after completion.
+
+## 10.3 Sprint Metrics
+
+- Total tickets.
+- Completed tickets.
+- In-progress tickets.
+- Blocked tickets.
+- Deferred tickets.
+- Sprint completion percentage.
+- Work carried forward.
+- Member-wise workload.
+- Estimated versus actual effort.
+- Tickets completed within the sprint.
+
+Sprint progress should be calculated using ticket estimates when estimates are available and consistently populated. Otherwise, use an equal-ticket weighting method.
+
+---
+
+# 11. Ticket Management
+
+Each ticket should have:
+
+- Ticket ID.
+- Title.
+- Description.
+- Sprint ID.
+- Assigned member.
+- Priority.
+- Status.
+- Progress percentage.
+- Estimate points or effort.
+- Target date.
+- Created date.
+- Updated date.
+
+## 11.1 Ticket Priorities
+
+- Critical
+- High
+- Medium
+- Low
+
+## 11.2 Ticket Validations
+
+- Every ticket must have a unique ID.
+- Assigned members must be active.
+- Target dates must be valid.
+- Completed tickets must have 100% progress.
+- Blocked tickets require blocker details.
+- Tickets past their target date must be flagged.
+- Tickets without recent updates must be flagged.
+- Work entries linked to a ticket must retain their individual daily history.
+
+---
+
+# 12. Admin Dashboard
+
+The Admin dashboard must provide a consolidated view of team operations.
+
+## 12.1 Overview Metrics
+
+- Total active members.
+- Members who submitted today.
+- Pending daily submissions.
+- Total team hours.
+- Average hours per member.
+- Active sprint count.
+- Completed tickets.
+- In-progress tickets.
+- Blocked tickets.
+- Overdue tickets.
+- Work carried forward.
+
+## 12.2 Team Submission Overview
+
+| Member | Expected Hours | Logged Hours | Submission |
+|---|---:|---:|---|
+| Member A | 8 | 8 | Submitted |
+| Member B | 8 | 6 | Pending |
+| Member C | 7.5 | 7.5 | Submitted |
+
+Administrators should be able to filter by date, sprint, member and submission status.
+
+## 12.3 Team Work Overview
+
+Display:
+
+- Work completed by each member.
+- Work currently in progress.
+- Blocked work.
+- Work carried forward.
+- Total time spent.
+- Progress by category.
+- Ticket completion trends.
+
+---
+
+# 13. Automated Email Workflows
+
+Email notifications should reduce manual follow-ups.
+
+## 13.1 EOD Reminder
+
+**Scheduled time:** 20:00 company timezone.
+
+Every scheduled working day, the system checks daily submissions.
+
+If a member has not submitted their report, the system sends a reminder.
+
+**Email subject:** Reminder: Please submit your daily work report
+
+**Email content:**
+
+Hi [Member Name],
+
+This is a friendly reminder to submit your daily work report for [Date].
+
+Please make sure all your work activities, progress updates and working hours are recorded before submitting your daily report.
+
+If you did not perform any work today, please submit the report with an appropriate reason.
+
+Thank you.
+
+Team Work Tracker
+
+## 13.2 Reminder Rules
+
+- Only active members are eligible.
+- Only scheduled working days are considered.
+- Holidays and approved leave are excluded.
+- Already-submitted reports are excluded.
+- Each member receives at most one successful EOD reminder per date.
+- Failed deliveries are logged and retried according to the configured retry policy.
+- Submission after the reminder suppresses further reminders.
+- Admins can view reminder delivery status.
+
+## 13.3 Other Notification Events
+
+| Event | Recipient |
+|---|---|
+| Daily reminder | Member |
+| Daily submission confirmation | Member |
+| Work assigned | Assigned member |
+| Ticket due date approaching | Assigned member |
+| Ticket overdue | Member and Admin |
+| Work marked Blocked | Admin and relevant stakeholders |
+| Sprint started | Sprint members |
+| Sprint nearing completion | Admin and sprint members |
+| Member account activated | Member |
+| Member account deactivated | Admin |
+
+Notifications should be configurable so that unnecessary email volume can be avoided.
+
+---
+
+# 14. Additional Validation & Business Rules
+
+The system should enforce the following checks consistently at the API level.
+
+## 14.1 Work Entry Validation
+
+- Work title cannot be empty.
+- Work title must meet a minimum length.
+- Work date must be valid.
+- Start time must be earlier than end time.
+- Duration must be positive.
+- Overlapping work entries are not allowed.
+- Progress must remain between 0 and 100.
+- Completed work requires 100%.
+- Blocked work requires a blocker description and next action.
+- Duplicate entries should be flagged where appropriate.
+- Members cannot create work on behalf of another member.
+
+## 14.2 Daily Submission Validation
+
+- Only one active submission per member per date.
+- Daily submission is mandatory on working days.
+- No-work submissions require a meaningful reason.
+- Submitted reports are locked.
+- Corrections require an Admin action and audit event.
+- Late submissions must be identified separately.
+- Working-hour deviations must be highlighted.
+
+## 14.3 Working Hour Validation
+
+- No overlapping time entries.
+- Missing start or end times are rejected.
+- Unusually long workdays are flagged.
+- Very short workdays are flagged.
+- Working-hour shortfalls require an explanation.
+- Excess hours are highlighted without automatically treating them as overtime.
+- Expected hours must respect individual schedules and date overrides.
+
+## 14.4 Sprint Validation
+
+- Sprint dates must be valid.
+- Sprint end date cannot precede the start date.
+- Tickets must reference valid sprints.
+- Inactive members cannot receive new assignments.
+- Completed tickets must have 100% progress.
+- Overdue and stale tickets must be highlighted.
+
+## 14.5 Account Validation
+
+- Only verified company Google accounts are accepted.
+- Inactive accounts cannot sign in.
+- Roles are assigned by the backend.
+- Role changes must be audited.
+- Deactivated users' historical records must be retained according to the retention policy.
+
+---
+
+# 15. Audit Logging
+
+All important system operations must be recorded in an append-only audit log.
+
+## 15.1 Events to Audit
+
+- User sign-in.
+- User activation and deactivation.
+- Role changes.
+- Working-hour configuration changes.
+- Sprint creation and modification.
+- Ticket creation and assignment.
+- Work entry creation.
+- Work entry modification.
+- Work status changes.
+- Progress changes.
+- Daily submission.
+- Daily report reopening.
+- Daily report correction.
+- Carry-forward operations.
+- Reminder email attempts.
+- System configuration changes.
+
+## 15.2 Audit Record Structure
+
+| Field | Description |
+|---|---|
+| Audit ID | Unique event ID |
+| Actor | User or system |
+| Action | Operation performed |
+| Entity Type | Work, Ticket, Sprint, Member, etc. |
+| Entity ID | Affected record |
+| Before Values | Previous state |
+| After Values | Updated state |
+| Timestamp | Event time |
+| Source | User action or automated process |
+
+Audit history must not be editable by normal Admin or Member interfaces.
+
+Direct spreadsheet access must be restricted to authorized administrators and the backend service account.
+
+---
+
+# 16. Reports & Analytics
+
+## 16.1 Daily Reports
+
+- Daily hours by member.
+- Daily work entries.
+- Completed and incomplete work.
+- Pending submissions.
+- Blockers.
+- Working-hour deviations.
+
+## 16.2 Weekly Reports
+
+- Weekly working hours.
+- Weekly work completion.
+- Member-wise productivity trends.
+- Work carried forward.
+- Tickets completed.
+- Tickets delayed.
+- Sprint progress.
+
+## 16.3 Sprint Reports
+
+- Sprint completion percentage.
+- Planned versus completed tickets.
+- Workload distribution.
+- Blocker trends.
+- Carry-forward trends.
+- Estimated versus actual effort.
+- Unfinished work at sprint closure.
+
+## 16.4 Reporting Principles
+
+Reports should distinguish:
+
+- Hours logged from hours expected.
+- Task progress from time spent.
+- Daily submission compliance from task completion.
+- Individual workload from team performance.
+- Planned work from carried-forward work.
+
+The application should not equate longer working hours with better productivity.
+
+---
+
+# 17. Google Sheets Data Structure
+
+Google Sheets will be the initial data store.
+
+The backend must access the spreadsheet through the Google Sheets API using a dedicated service account.
+
+The frontend must never access the service account credentials directly.
+
+Recommended worksheets:
+
+| Worksheet | Purpose |
+|---|---|
+| Team | Member profiles, roles and schedules |
+| Sprints | Sprint details |
+| Tickets | Ticket assignments and progress |
+| WorkEntries | Daily work and time tracking |
+| DailySubmissions | Daily submission records |
+| Holidays | Holiday calendar |
+| Leave | Approved leave records |
+| ReminderLog | Email delivery history |
+| AuditLog | System audit events |
+| Settings | Global application configuration |
+
+## 17.1 Data Integrity
+
+- Every record must have a unique identifier.
+- Relationships must use stable IDs.
+- Dates must use a consistent format.
+- Timestamps must be stored in a consistent timezone format.
+- API validation must occur before spreadsheet writes.
+- Duplicate daily submissions must be prevented.
+- Carry-forward operations must be idempotent.
+- Audit records must be append-only.
+- Spreadsheet edits must not bypass application permissions.
+
+## 17.2 Future Database Migration
+
+The application should use a repository/data-access abstraction.
+
+This allows Google Sheets to be replaced later with PostgreSQL without rewriting the React frontend or the entire business logic.
+
+Google Sheets is suitable for an initial small-team deployment, but concurrency, write limits, audit integrity and reporting complexity should be reviewed as usage increases.
+
+---
+
+# 18. System Architecture
+
+## 18.1 Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React |
+| Language | TypeScript |
+| UI | Responsive component-based interface |
+| Backend | Node.js + Express |
+| Authentication | Google Identity Services |
+| Token Verification | Google Auth Library |
+| Initial Database | Google Sheets API |
+| Validation | Zod |
+| Email | SMTP / approved company email service |
+| Scheduler | Node Cron or dedicated job runner |
+| Hosting | Approved internal or cloud environment |
+
+## 18.2 High-Level Data Flow
+
+1. Member interacts with the React application.
+2. Google Workspace authenticates the member.
+3. Backend verifies identity and permissions.
+4. API validates the requested operation.
+5. Business services apply workflow rules.
+6. Repository layer reads or writes Google Sheets.
+7. Audit service records important changes.
+8. Scheduler handles carry-forward and reminders.
+9. Reporting services aggregate work and hours.
+10. React dashboards display the latest information.
+
+---
+
+# 19. Background Jobs & Automation
+
+The backend must support scheduled operations.
+
+| Automation | Frequency | Purpose |
+|---|---|---|
+| EOD reminder | Daily at 20:00 | Notify members with pending submissions |
+| Carry-forward | Daily on working-day transition | Move incomplete work forward |
+| Stale work detection | Daily | Identify work without updates |
+| Overdue ticket detection | Daily | Identify tickets past target dates |
+| Reminder retry | Configurable | Retry failed email delivery |
+| Data consistency check | Daily | Detect missing or inconsistent references |
+| Weekly summary | Weekly | Generate team activity summary |
+
+All scheduled jobs must be safe to run more than once without creating duplicate records or sending duplicate successful reminders.
+
+---
+
+# 20. Security, Reliability & Operational Requirements
+
+- HTTPS must be enforced in production.
+- Google identity tokens must be verified server-side.
+- Backend sessions must be securely managed.
+- Secrets must be stored in environment variables or a secret manager.
+- Service account credentials must never be exposed to the browser.
+- API endpoints must enforce role-based access control.
+- Inputs must be validated on the server.
+- Rate limiting must protect authentication and write endpoints.
+- CORS must allow only approved frontend origins.
+- Spreadsheet access must be restricted.
+- Backups and recovery procedures must be established.
+- Application logs must avoid exposing credentials or unnecessary personal data.
+- Employee work-hour visibility and retention must comply with company policies.
+
+For the initial Google Sheets deployment, use a single controlled backend writer or implement a reliable write queue and locking mechanism. Avoid multiple independent application instances writing concurrently without coordination.
+
+---
+
+# 21. Implementation Phases
+
+## Phase 1 – Foundation & Authentication
+
+- React application structure.
+- Google Workspace authentication.
+- Role-based access control.
+- Member profile management.
+- Google Sheets integration.
+- Initial Admin and Member dashboards.
+
+**Deliverable:** Secure sign-in and role-aware application.
+
+## Phase 2 – Daily Work Management
+
+- Add multiple work entries.
+- Work categories and statuses.
+- Progress tracking.
+- Start/end time tracking.
+- Automatic duration calculation.
+- Work history.
+- Work-entry validations.
+
+**Deliverable:** Complete daily work tracking.
+
+## Phase 3 – Daily Submission & Carry-Forward
+
+- Daily summary.
+- Strict submission validation.
+- Submission locking.
+- Admin correction and reopening.
+- Automatic carry-forward.
+- Holiday and working-day handling.
+
+**Deliverable:** Reliable daily reporting workflow.
+
+## Phase 4 – Sprint & Ticket Management
+
+- Sprint creation.
+- Ticket creation and assignment.
+- Ticket progress tracking.
+- Sprint dashboards.
+- Overdue and stale work detection.
+
+**Deliverable:** Complete sprint management workflow.
+
+## Phase 5 – Email Automation
+
+- EOD reminder at 20:00.
+- Submission confirmation.
+- Assignment notifications.
+- Blocker notifications.
+- Reminder logs.
+- Retry and duplicate prevention.
+
+**Deliverable:** Automated team notifications.
+
+## Phase 6 – Admin, Reports & Audit
+
+- Team overview.
+- Working-hour reports.
+- Daily and weekly analytics.
+- Sprint reports.
+- Audit history.
+- Member and schedule administration.
+
+**Deliverable:** Complete management and reporting experience.
+
+## Phase 7 – Testing & Production Readiness
+
+- Authentication and authorization testing.
+- Role permission testing.
+- Time overlap validation.
+- Daily submission testing.
+- Carry-forward testing.
+- Email delivery testing.
+- Timezone and daylight-saving testing.
+- Concurrent update testing.
+- Backup and recovery testing.
+- Security review.
+- Deployment.
+
+**Deliverable:** Production-ready application.
+
+---
+
+# 22. Acceptance Criteria
+
+The system is considered functionally complete when all the following conditions are satisfied.
+
+### Authentication & Roles
+- [ ] Members can sign in using approved office Google accounts.
+- [ ] Admin and Member permissions are enforced by the backend.
+- [ ] Inactive users cannot access the application.
+- [ ] Role changes are audited.
+
+### Daily Work
+- [ ] Members can create multiple work entries per day.
+- [ ] Every work entry records start time and end time.
+- [ ] Duration is calculated automatically.
+- [ ] Progress can be updated from 0% to 100%.
+- [ ] Completed work requires 100%.
+- [ ] Blocked work requires blocker details and next action.
+- [ ] Overlapping work entries are rejected.
+
+### Daily Submission
+- [ ] Daily submission is mandatory on working days.
+- [ ] A member can submit only once per day.
+- [ ] No-work submissions require a reason.
+- [ ] Submitted reports are locked.
+- [ ] Corrections require an authorized and audited process.
+- [ ] Admin approval is not required.
+
+### Working Hours
+- [ ] Expected hours can be customized.
+- [ ] Team members can see team-level logged hours.
+- [ ] Members can view their own detailed entries.
+- [ ] Working-hour deviations are highlighted.
+
+### Carry-Forward
+- [ ] Incomplete work is automatically carried forward.
+- [ ] Completed work is not carried forward.
+- [ ] Holidays and non-working days are skipped.
+- [ ] Progress and history are preserved.
+- [ ] Previous-day hours are not added to the new day.
+- [ ] Duplicate carry-forward records are prevented.
+
+### Sprint Management
+- [ ] Admins can create and manage sprints.
+- [ ] Admins can create and assign tickets.
+- [ ] Members can update their assigned work.
+- [ ] Sprint completion is calculated correctly.
+- [ ] Overdue and blocked tickets are highlighted.
+
+### Email Automation
+- [ ] EOD reminder runs at 20:00 company timezone.
+- [ ] Only eligible members receive reminders.
+- [ ] Submitted reports are excluded.
+- [ ] Holidays and approved leave are excluded.
+- [ ] Email delivery and failures are recorded.
+- [ ] Duplicate successful reminders are prevented.
+
+### Administration & Audit
+- [ ] Admins can manage members and schedules.
+- [ ] Admins can view team submissions and hours.
+- [ ] Admins can inspect blockers and stale work.
+- [ ] Important operations are audited.
+- [ ] Audit history cannot be modified through normal application interfaces.
+
+---
+
+# 23. Final Product Principles
+
+The application must follow these principles throughout implementation:
+
+1. **Simple daily usage:** A member should be able to record work quickly without navigating unnecessary screens.
+2. **Accurate time tracking:** Working hours must be derived from valid work entries, not guessed.
+3. **Strict accountability:** Every scheduled working day requires a daily submission.
+4. **Honest progress:** Incomplete work must never be marked complete merely to satisfy submission requirements.
+5. **Automatic continuity:** Unfinished work must carry forward without losing its history.
+6. **Transparent visibility:** Team working hours and team-level progress must be visible to everyone.
+7. **Controlled administration:** Only authorized Admins can modify team configuration and other members' records.
+8. **Complete traceability:** Important changes and automated actions must be auditable.
+9. **Low operational overhead:** Reminders and routine checks should be automated.
+10. **Scalable architecture:** The initial Google Sheets data store must be replaceable with a proper database without redesigning the application.
+
+**End Goal:** A reliable, easy-to-use team management platform that provides complete visibility into daily activities, working hours, individual responsibilities and sprint execution, while minimizing manual reporting and administrative follow-ups.
